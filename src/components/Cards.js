@@ -1,8 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Card from './Card';
+import { toPng } from 'html-to-image';
 
 const Cards = () => {
+  const ref = useRef(null);
   const arr = [...Array(144).keys()];
+
+  const downloadImageHandler = useCallback(() => {
+    if (ref.current === null) {
+      return;
+    }
+    toPng(ref.current, { cacheBust: true })
+      .then(dataUrl => {
+        const link = document.createElement('a');
+        link.download = `${new Date().getTime()}.png`;
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }, [ref]);
 
   const paletteList = [
     'sugar-candy',
@@ -42,13 +60,23 @@ const Cards = () => {
           {palette}
         </span>
       </div>
-      <div className="flex flex-row content-start flex-wrap">{listCards}</div>
-      <button
-        className={`px-4 py-2 bg-palette-4-3 text-gray-800 mx-auto mt-8 text-dark-bg bg-gradient-to-r from-${palette}-2 to-${palette}-3 text-sm font-bold lowercase tracking-wider rounded-lg transform transition hover:scale-105`}
-        onClick={setPaletteHandler}
-      >
-        Random Palette
-      </button>
+      <div className="flex flex-row content-start flex-wrap" ref={ref}>
+        {listCards}
+      </div>
+      <div className="flex flex-row">
+        <button
+          className={`px-4 py-2 bg-palette-4-3 text-gray-800 mx-auto mt-8 text-dark-bg bg-gradient-to-r from-${palette}-2 to-${palette}-3 text-sm font-bold lowercase tracking-wider rounded-lg transform transition hover:scale-105`}
+          onClick={setPaletteHandler}
+        >
+          Random Palette
+        </button>
+        <button
+          className={`px-4 py-2 bg-palette-4-3 text-gray-800 mx-auto mt-8 text-dark-bg bg-gradient-to-r from-${palette}-3 to-${palette}-2 text-sm font-bold lowercase tracking-wider rounded-lg transform transition hover:scale-105`}
+          onClick={downloadImageHandler}
+        >
+          Download Image
+        </button>
+      </div>
     </div>
   );
 };
